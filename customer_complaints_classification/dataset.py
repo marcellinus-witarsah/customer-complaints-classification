@@ -1,29 +1,44 @@
-from pathlib import Path
+from typing import Tuple
+from torch.utils.data import Dataset
 
-import typer
-from loguru import logger
-from tqdm import tqdm
+class CustomerComplaintsDataset(Dataset):
+    """
+    A custom dataset for handling encoded customer complaints and their labels.
 
-from customer_complaints_classification.config import PROCESSED_DATA_DIR, RAW_DATA_DIR
+    Args:
+        encoded_texts (list): List of encoded text sequences.
+        encoded_labels (list): List of encoded labels corresponding to the text sequences.
+        max_length (int): Maximum length of the text sequences.
 
-app = typer.Typer()
+    Attributes:
+        encoded_texts (list): Stored list of encoded text sequences.
+        encoded_labels (list): Stored list of encoded labels.
+        max_length (int): Stored maximum length of the text sequences.
+    """
+    
+    def __init__(self, encoded_texts: list, encoded_labels: list, max_length: int) -> None:
+        super().__init__()
+        self.encoded_texts = encoded_texts
+        self.encoded_labels = encoded_labels
+        self.max_length = max_length
+    
+    def __len__(self) -> int:
+        """Total number of samples in the dataset.
 
+        Returns:
+            int: Number of samples.
+        """
+        return len(self.encoded_labels)
 
-@app.command()
-def main(
-    # ---- REPLACE DEFAULT PATHS AS APPROPRIATE ----
-    input_path: Path = RAW_DATA_DIR / "dataset.csv",
-    output_path: Path = PROCESSED_DATA_DIR / "dataset.csv",
-    # ----------------------------------------------
-):
-    # ---- REPLACE THIS WITH YOUR OWN CODE ----
-    logger.info("Processing dataset...")
-    for i in tqdm(range(10), total=10):
-        if i == 5:
-            logger.info("Something happened for iteration 5.")
-    logger.success("Processing dataset complete.")
-    # -----------------------------------------
+    def __getitem__(self, idx) -> Tuple[list, int]:
+        """sample from the dataset at the specified index.
 
+        Args:
+            idx (int): Index of the sample to retrieve.
 
-if __name__ == "__main__":
-    app()
+        Returns:
+            Tuple[list, int]: (encoded_text, label) where encoded_text is the encoded text sequence and label is the corresponding label.
+        """
+        encoded_text = self.encoded_texts[idx]
+        label = self.encoded_labels[idx]
+        return encoded_text, label

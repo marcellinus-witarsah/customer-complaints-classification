@@ -1,30 +1,31 @@
-from pathlib import Path
+import time
 
-import typer
-from loguru import logger
-from tqdm import tqdm
+def predict(text: str, vocab: Vocab, model: nn.Module, max_length: int) -> int:
+    """
+    Predicts the class label for a given text.
 
-from customer_complaints_classification.config import MODELS_DIR, PROCESSED_DATA_DIR
+    Args:
+        text (str): Input text to be classified.
+        vocab (Vocab): Vocabulary object used to encode the text.
+        model (nn.Module): Trained neural network model for prediction.
+        max_length (int): Maximum length of the input text sequences.
 
-app = typer.Typer()
-
-
-@app.command()
-def main(
-    # ---- REPLACE DEFAULT PATHS AS APPROPRIATE ----
-    features_path: Path = PROCESSED_DATA_DIR / "test_features.csv",
-    model_path: Path = MODELS_DIR / "model.pkl",
-    predictions_path: Path = PROCESSED_DATA_DIR / "test_predictions.csv",
-    # -----------------------------------------
-):
-    # ---- REPLACE THIS WITH YOUR OWN CODE ----
-    logger.info("Performing inference for model...")
-    for i in tqdm(range(10), total=10):
-        if i == 5:
-            logger.info("Something happened for iteration 5.")
-    logger.success("Inference complete.")
-    # -----------------------------------------
-
-
-if __name__ == "__main__":
-    app()
+    Returns:
+        int: Predicted class label.
+    """
+    # Preprocess the input text:
+    text = preprocess_text(text)
+    
+    # Encode the text using the vocabulary:
+    encoded_text = vocab(tokenizer(text))
+    
+    # Pad the encoded text to the maximum length:
+    encoded_text = pad_sequence(encoded_text, max_length)
+    
+    # Convert the encoded text to a tensor and add a batch dimension:
+    encoded_text = torch.LongTensor(encoded_text).unsqueeze(0).to(device)
+    
+    # Predict the class label using the model:
+    output = model(encoded_text).argmax(1)
+    
+    return output.item()
